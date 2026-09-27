@@ -1,0 +1,6 @@
+{
+  "name": "SabKit",
+  "description": "All-in-One Developer Utility App: ZIP & Source Code Viewer, Keystore & SHA Generator, APK/AAB Inspector, Wifi Statistics & SNTP Time, and AdMob Monetization Center.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

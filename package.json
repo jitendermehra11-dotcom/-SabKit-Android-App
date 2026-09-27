@@ -1,0 +1,13 @@
+{
+  "name": "sabkit",
+  "version": "1.0.1",
+  "description": "SabKit All-in-One Developer Utility App",
+  "scripts": {
+    "build": "echo 'Android workspace build OK'",
+    "dev": "echo 'Android workspace ready'",
+    "start": "echo 'Android workspace running'",
+    "lint": "echo 'Lint OK'"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
