@@ -24,13 +24,10 @@ jobs:
 
     - name: Build APK with Gradle
       run: |
-        if [ -f "build.gradle.kts" ] || [ -f "build.gradle" ]; then
-          gradle assembleDebug
-        elif [ -d "SabKit" ]; then
-          cd SabKit && gradle assembleDebug
-        else
-          find . -maxdepth 2 -name "build.gradle*" -execdir gradle assembleDebug \;
-        fi
+        PROJ_DIR=$(find . -name "build.gradle*" -exec dirname {} \; | head -n 1)
+        echo "Found project in directory: $PROJ_DIR"
+        cd "$PROJ_DIR"
+        gradle assembleDebug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
