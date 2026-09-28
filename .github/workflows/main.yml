@@ -22,14 +22,12 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Generate Gradle Wrapper and Build APK
+    - name: Build Debug APK
       run: |
-        PROJ_DIR=$(find . -name "build.gradle*" -exec dirname {} \; | head -n 1)
-        echo "Found project in directory: $PROJ_DIR"
+        PROJ_DIR=$(find . -name "settings.gradle*" -exec dirname {} \; | head -n 1)
+        echo "Project root found at: $PROJ_DIR"
         cd "$PROJ_DIR"
-        gradle wrapper
-        chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon
+        gradle assembleDebug --no-daemon
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
