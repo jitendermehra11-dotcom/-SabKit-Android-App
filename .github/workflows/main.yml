@@ -24,9 +24,10 @@ jobs:
 
     - name: Build Debug APK
       run: |
-        PROJ_DIR=$(find . -name "settings.gradle*" -exec dirname {} \; | head -n 1)
-        echo "Project root found at: $PROJ_DIR"
-        cd "$PROJ_DIR"
+        BUILD_FILE=$(find . -name "build.gradle*" -not -path "*/.*" | head -n 1)
+        BUILD_DIR=$(dirname "$BUILD_FILE")
+        echo "Building Gradle in directory: $BUILD_DIR"
+        cd "$BUILD_DIR"
         gradle assembleDebug --no-daemon
 
     - name: Upload APK Artifact
