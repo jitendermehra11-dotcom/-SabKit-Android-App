@@ -19,27 +19,14 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-
     - name: Grant execute permission for gradlew
-      run: |
-        if [ -f "./gradlew" ]; then
-          chmod +x ./gradlew
-        elif [ -f "./SabKit/gradlew" ]; then
-          chmod +x ./SabKit/gradlew
-        fi
+      run: chmod +x gradlew
 
     - name: Build Debug APK
-      run: |
-        if [ -f "./gradlew" ]; then
-          ./gradlew assembleDebug
-        elif [ -f "./SabKit/gradlew" ]; then
-          cd SabKit && ./gradlew assembleDebug
-        fi
+      run: ./gradlew assembleDebug
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: SabKit-App-Debug
-        path: "**/app/build/outputs/apk/debug/*.apk"
+        path: app/build/outputs/apk/debug/app-debug.apk
