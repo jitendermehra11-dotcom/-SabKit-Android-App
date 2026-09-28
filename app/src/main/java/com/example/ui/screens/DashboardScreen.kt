@@ -564,6 +564,19 @@ fun DashboardScreen(
             )
         }
 
+        // 7. Government Loan & Business Assistance Module Card
+        item {
+            ModuleCard(
+                title = "सरकारी लोन एवं बिजनेस सहायता",
+                description = "पीएम स्वनिधि, मुद्रा (MUDRA), MSME बिजनेस लोन और PMEGP योजनाओं के लिए प्रोफाइल सेटअप करें।",
+                badge = "Loan & MSME",
+                icon = Icons.Default.Shield,
+                accentColor = Color(0xFFFF6F00),
+                testTag = "card_loan_profile",
+                onClick = { onNavigate(AppScreen.LOAN_PROFILE) }
+            )
+        }
+
         // Branding Footer: "Developed by SabKit Team"
         item {
             Spacer(modifier = Modifier.height(12.dp))

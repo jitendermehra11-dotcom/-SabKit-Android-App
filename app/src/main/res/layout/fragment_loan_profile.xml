@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/adView">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="लोन प्रोफाइल सेटअप"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#000000" />
+
+            <EditText
+                android:id="@+id/etFullName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="पूरा नाम (PAN कार्ड के अनुसार)"
+                android:inputType="textPersonName"
+                android:layout_marginTop="16dp" />
+
+            <EditText
+                android:id="@+id/etMobile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="मोबाइल नंबर"
+                android:inputType="phone"
+                android:layout_marginTop="12dp" />
+
+            <EditText
+                android:id="@+id/etUdyamNo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="उद्यम नंबर (Optional)"
+                android:layout_marginTop="12dp" />
+
+            <Spinner
+                android:id="@+id/spLoanType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp" />
+
+            <Button
+                android:id="@+id/btnSubmitLoan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="आवेदन जमा करें"
+                android:backgroundTint="#FF6F00"
+                android:textColor="@android:color/white"
+                android:layout_marginTop="24dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- AdMob Banner Ad View -->
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        ads:adSize="BANNER"
+        ads:adUnitId="ca-app-pub-3940256099942544/6300978111" />
+
+</RelativeLayout>

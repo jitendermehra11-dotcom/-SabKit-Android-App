@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="@android:color/white">
+
+    <TextView
+        android:id="@+id/tvLoanTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="सरकारी लोन एवं बिजनेस सहायता"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:gravity="center" />
+
+    <TextView
+        android:id="@+id/tvLoanDesc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="क्या आपको पीएम स्वनिधि, मुद्रा या MSME लोन की आवश्यकता है? तुरंत अपनी प्रोफाइल सेटअप करें।"
+        android:textSize="14sp"
+        android:textColor="#555555"
+        android:gravity="center"
+        android:layout_marginTop="10dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="20dp">
+
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="बाद में"
+            android:backgroundTint="#888888"
+            android:textColor="@android:color/white"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/btnApplyNow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="अभी सेटअप करें"
+            android:backgroundTint="#FF6F00"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+</LinearLayout>

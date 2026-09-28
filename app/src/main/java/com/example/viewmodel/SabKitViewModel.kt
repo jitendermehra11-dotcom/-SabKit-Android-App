@@ -38,7 +38,8 @@ enum class AppScreen {
     KEYSTORE_GEN,
     APK_INSPECTOR,
     WIFI_SNTP,
-    ADMOB_CENTER
+    ADMOB_CENTER,
+    LOAN_PROFILE
 }
 
 data class SabKitUiState(
@@ -82,7 +83,16 @@ data class SabKitUiState(
     val impressionsInput: String = "10000",
     val ecpmInput: String = "2.50",
     val calculatedRevenue: Double = 25.0,
-    val deviceSpecs: List<DeviceSpec> = emptyList()
+    val deviceSpecs: List<DeviceSpec> = emptyList(),
+
+    // Government Loan & Business Assistance State
+    val showLoanDialog: Boolean = false,
+    val loanFullName: String = "",
+    val loanMobile: String = "",
+    val loanUdyamNo: String = "",
+    val selectedLoanType: String = "PM SVANidhi Loan (स्ट्रीट वेंडर लोन)",
+    val loanSubmittedSuccess: Boolean = false,
+    val loanSuccessMessage: String? = null
 )
 
 class SabKitViewModel(application: Application) : AndroidViewModel(application) {
@@ -105,6 +115,27 @@ class SabKitViewModel(application: Application) : AndroidViewModel(application) 
 
     fun navigateTo(screen: AppScreen) {
         _uiState.update { it.copy(currentScreen = screen) }
+    }
+
+    fun setLoanDialogVisible(visible: Boolean) {
+        _uiState.update { it.copy(showLoanDialog = visible) }
+    }
+
+    fun submitLoanApplication(fullName: String, mobile: String, udyam: String, loanType: String) {
+        _uiState.update {
+            it.copy(
+                loanFullName = fullName,
+                loanMobile = mobile,
+                loanUdyamNo = udyam,
+                selectedLoanType = loanType,
+                loanSubmittedSuccess = true,
+                loanSuccessMessage = "धन्यवाद $fullName! $loanType के लिए आपका आवेदन दर्ज कर लिया गया है।"
+            )
+        }
+    }
+
+    fun dismissLoanSuccessMessage() {
+        _uiState.update { it.copy(loanSubmittedSuccess = false, loanSuccessMessage = null) }
     }
 
     fun navigateBack(): Boolean {

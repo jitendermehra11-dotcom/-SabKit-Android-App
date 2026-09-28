@@ -1,10 +1,13 @@
 package com.example
 
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import android.widget.Button
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,28 +29,71 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ui.components.SabKitTopBar
 import com.example.ui.screens.AdMobCenterScreen
 import com.example.ui.screens.ApkInspectorScreen
 import com.example.ui.screens.DashboardScreen
+import com.example.ui.screens.GovernmentLoanPopupDialog
 import com.example.ui.screens.KeystoreGenScreen
+import com.example.ui.screens.LoanProfileScreen
 import com.example.ui.screens.WifiSntpScreen
 import com.example.ui.screens.ZipViewerScreen
 import com.example.ui.theme.MyApplicationTheme
 import com.example.viewmodel.AppScreen
 import com.example.viewmodel.SabKitViewModel
+import com.google.android.gms.ads.MobileAds
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
+
+    private lateinit var mainViewModel: SabKitViewModel
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Initialize Google Mobile Ads SDK safely
+        runCatching {
+            MobileAds.initialize(this) {}
+        }
+
+        mainViewModel = ViewModelProvider(this)[SabKitViewModel::class.java]
+
         setContent {
             MyApplicationTheme {
-                SabKitApp()
+                SabKitApp(viewModel = mainViewModel)
             }
         }
+    }
+
+    /**
+     * Shows the Government Loan Popup Dialog using XML dialog_loan_popup.
+     * Guaranteed crash-free navigation into Loan Profile.
+     */
+    fun showLoanPopUpDialog() {
+        if (isFinishing || isDestroyed) return
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_loan_popup, null)
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(true)
+            .create()
+
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+        val btnCancel = dialogView.findViewById<Button>(R.id.btnCancel)
+        val btnApplyNow = dialogView.findViewById<Button>(R.id.btnApplyNow)
+
+        btnCancel?.setOnClickListener { dialog.dismiss() }
+        btnApplyNow?.setOnClickListener {
+            dialog.dismiss()
+            mainViewModel.navigateTo(AppScreen.LOAN_PROFILE)
+        }
+
+        dialog.show()
     }
 }
 
@@ -68,6 +114,7 @@ fun SabKitApp(
         AppScreen.APK_INSPECTOR -> "APK & AAB Inspector"
         AppScreen.WIFI_SNTP -> "Wifi & SNTP Diagnostics"
         AppScreen.ADMOB_CENTER -> "AdMob & Developer Info"
+        AppScreen.LOAN_PROFILE -> "सरकारी लोन सहायता"
     }
 
     val topBarSubtitle = when (state.currentScreen) {
@@ -77,7 +124,18 @@ fun SabKitApp(
         AppScreen.APK_INSPECTOR -> "Package Metadata & Signatures"
         AppScreen.WIFI_SNTP -> "Latency, Speed & True NTP Time"
         AppScreen.ADMOB_CENTER -> "Official Test IDs & eCPM Estimator"
+        AppScreen.LOAN_PROFILE -> "PM SVANidhi, MUDRA & MSME Schemes"
     }
+
+    // Popup dialog integration
+    GovernmentLoanPopupDialog(
+        showDialog = state.showLoanDialog,
+        onDismiss = { viewModel.setLoanDialogVisible(false) },
+        onApplyNow = {
+            viewModel.setLoanDialogVisible(false)
+            viewModel.navigateTo(AppScreen.LOAN_PROFILE)
+        }
+    )
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -137,6 +195,13 @@ fun SabKitApp(
             }
             AppScreen.ADMOB_CENTER -> {
                 AdMobCenterScreen(
+                    state = state,
+                    viewModel = viewModel,
+                    modifier = screenModifier
+                )
+            }
+            AppScreen.LOAN_PROFILE -> {
+                LoanProfileScreen(
                     state = state,
                     viewModel = viewModel,
                     modifier = screenModifier
