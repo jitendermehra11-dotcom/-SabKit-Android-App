@@ -22,12 +22,14 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Build APK with Gradle
+    - name: Generate Gradle Wrapper and Build APK
       run: |
         PROJ_DIR=$(find . -name "build.gradle*" -exec dirname {} \; | head -n 1)
         echo "Found project in directory: $PROJ_DIR"
         cd "$PROJ_DIR"
-        gradle assembleDebug
+        gradle wrapper
+        chmod +x gradlew
+        ./gradlew assembleDebug --no-daemon
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
