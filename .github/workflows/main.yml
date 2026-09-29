@@ -22,19 +22,17 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Fix Directory Structure and Clean Build Setup
+    - name: Clean Conflicting Files and Build Fresh APK
       run: |
-        # 1. Fix nested app directory issue if exists
-        if [ -d "app/app" ]; then
-          cp -r app/app/* app/ 2>/dev/null || true
-          rm -rf app/app
-        fi
+        # 1. Root और app स्तर की पुरानी/खराब Gradle/Settings/App फाइलों को हटाएं
+        rm -f build.gradle build.gradle.kts settings.gradle settings.gradle.kts gradle.properties
+        rm -f app/build.gradle app/build.gradle.kts
 
-        # 2. Regenerate fresh Gradle Wrapper files
+        # 2. Fresh Gradle Wrapper बनाएं
         gradle wrapper --gradle-version 8.4
         chmod +x gradlew
 
-        # 3. Create Root settings.gradle.kts
+        # 3. Clean Root settings.gradle.kts बनाएं
         cat << 'EOF' > settings.gradle.kts
         pluginManagement {
             repositories {
@@ -54,22 +52,19 @@ jobs:
         include(":app")
         EOF
 
-        # 4. Create gradle.properties
+        # 4. Clean gradle.properties बनाएं
         cat << 'EOF' > gradle.properties
         android.useAndroidX=true
         android.nonTransitiveRClass=true
         org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
         EOF
 
-        # 5. Create missing .env files
+        # 5. Missing .env फ़ाइलें बनाएं
         touch .env .env.example
+        mkdir -p app
         touch app/.env app/.env.example
 
-        # 6. Delete old build.gradle.kts and recreate clean one
-        rm -f app/build.gradle.kts
-        mkdir -p app
-
-        # 7. Write Corrected app/build.gradle.kts
+        # 6. Clean app/build.gradle.kts लिखें (बिना libs / Version Catalog के)
         cat << 'EOF' > app/build.gradle.kts
         import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
 
@@ -198,7 +193,7 @@ jobs:
         }
         EOF
 
-        # 8. Build Debug APK
+        # 7. Debug APK बिल्ड करें
         ./gradlew assembleDebug --stacktrace --no-daemon
 
     - name: Upload APK Artifact
