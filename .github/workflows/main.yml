@@ -22,7 +22,7 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Clean structure and regenerate build.gradle.kts
+    - name: Clean structure and regenerate build setup
       run: |
         # 1. Ensure gradle wrapper exists
         if [ -d "app/gradle" ]; then cp -r app/gradle . ; fi
@@ -48,7 +48,11 @@ jobs:
         include(":app")
         EOF
 
-        # 3. Write Corrected app/build.gradle.kts
+        # 3. Create missing .env and .env.example files for Secrets Plugin
+        touch .env .env.example
+        touch app/.env app/.env.example
+
+        # 4. Write Corrected app/build.gradle.kts
         cat << 'EOF' > app/build.gradle.kts
         import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
 
@@ -170,7 +174,7 @@ jobs:
         }
         EOF
 
-        # 4. Generate Fully Compatible Version Catalog
+        # 5. Generate Fully Compatible Version Catalog
         mkdir -p gradle
         cat << 'EOF' > gradle/libs.versions.toml
         [versions]
@@ -245,7 +249,7 @@ jobs:
         google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
         EOF
 
-        # 5. Build Debug APK
+        # 6. Build Debug APK
         gradle wrapper
         chmod +x gradlew
         ./gradlew assembleDebug --stacktrace --no-daemon
