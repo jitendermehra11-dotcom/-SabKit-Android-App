@@ -22,13 +22,19 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Clean structure and regenerate build setup
+    - name: Fix Directory Structure and Regenerate Configuration
       run: |
-        # 1. Regenerate fresh Gradle Wrapper files
+        # 1. Fix nested app directory issue if it exists
+        if [ -d "app/app" ]; then
+          cp -r app/app/* app/ 2>/dev/null || true
+          rm -rf app/app
+        fi
+
+        # 2. Regenerate fresh Gradle Wrapper files
         gradle wrapper --gradle-version 8.4
         chmod +x gradlew
 
-        # 2. Fix Root settings.gradle.kts
+        # 3. Fix Root settings.gradle.kts
         cat << 'EOF' > settings.gradle.kts
         pluginManagement {
             repositories {
@@ -48,27 +54,28 @@ jobs:
         include(":app")
         EOF
 
-        # 3. Create gradle.properties with AndroidX enabled
+        # 4. Create gradle.properties with AndroidX enabled
         cat << 'EOF' > gradle.properties
         android.useAndroidX=true
         android.nonTransitiveRClass=true
         org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
         EOF
 
-        # 4. Create missing .env files for Secrets Plugin
+        # 5. Create missing .env files for Secrets Plugin
         touch .env .env.example
         touch app/.env app/.env.example
 
-        # 5. Write Corrected app/build.gradle.kts
+        # 6. Write Corrected app/build.gradle.kts using direct Plugin IDs
+        mkdir -p app
         cat << 'EOF' > app/build.gradle.kts
         import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
 
         plugins {
-          alias(libs.plugins.android.application)
-          alias(libs.plugins.kotlin.compose)
-          alias(libs.plugins.google.devtools.ksp)
-          alias(libs.plugins.secrets)
-          alias(libs.plugins.google.services)
+          id("com.android.application")
+          id("org.jetbrains.kotlin.android")
+          id("com.google.devtools.ksp")
+          id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+          id("com.google.gms.google-services")
         }
 
         android {
@@ -117,6 +124,9 @@ jobs:
           buildFeatures {
             compose = true
             buildConfig = true
+          }
+          composeOptions {
+            kotlinCompilerExtensionVersion = "1.5.8"
           }
           testOptions { unitTests { isIncludeAndroidResources = true } }
           dependenciesInfo {
@@ -181,7 +191,7 @@ jobs:
         }
         EOF
 
-        # 6. Generate Version Catalog
+        # 7. Generate Version Catalog in gradle/libs.versions.toml
         mkdir -p gradle
         cat << 'EOF' > gradle/libs.versions.toml
         [versions]
@@ -256,7 +266,7 @@ jobs:
         google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
         EOF
 
-        # 7. Build Debug APK using clean wrapper
+        # 8. Build Debug APK
         ./gradlew assembleDebug --stacktrace --no-daemon
 
     - name: Upload APK Artifact
