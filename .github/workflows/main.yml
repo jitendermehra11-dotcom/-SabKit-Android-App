@@ -22,21 +22,42 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Auto-Restructure Files and Build APK
+    - name: Clean structure and Fix Gradle
       run: |
-        # 1. अगर gradle/wrapper या gradlew app/ के अंदर है तो उसे बाहर root पर ले आना
-        if [ -d "app/gradle" ]; then
-          cp -r app/gradle .
-        fi
-        if [ -f "app/gradlew" ]; then
-          cp app/gradlew .
-          cp app/gradlew.bat . 2>/dev/null || true
+        # 1. ensure wrapper exists
+        if [ -d "app/gradle" ]; then cp -r app/gradle . ; fi
+        if [ -f "app/gradlew" ]; then cp app/gradlew . ; cp app/gradlew.bat . 2>/dev/null || true ; fi
+
+        # 2. Fix settings.gradle.kts at Root
+        cat << 'EOF' > settings.gradle.kts
+        pluginManagement {
+            repositories {
+                google()
+                mavenCentral()
+                gradlePluginPortal()
+            }
+        }
+        dependencyResolutionManagement {
+            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        rootProject.name = "SabKit-Android-App"
+        include(":app")
+        EOF
+
+        # 3. Replace alias(libs.plugins...) with direct plugin IDs in app/build.gradle.kts
+        if [ -f "app/build.gradle.kts" ]; then
+          sed -i 's/alias(libs.plugins.android.application)/id("com.android.application")/g' app/build.gradle.kts
+          sed -i 's/alias(libs.plugins.kotlin.compose)/id("org.jetbrains.kotlin.plugin.compose")/g' app/build.gradle.kts
+          sed -i 's/alias(libs.plugins.google.devtools.ksp)/id("com.google.devtools.ksp")/g' app/build.gradle.kts
+          sed -i 's/alias(libs.plugins.secrets)/id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")/g' app/build.gradle.kts
+          sed -i 's/alias(libs.plugins.google.services)/id("com.google.gms.google-services")/g' app/build.gradle.kts
         fi
 
-        # 2. अगर settings.gradle.kts में दिक्कत है तो Root के लिए सही settings बनाना
-        echo 'include(":app")' > settings.gradle.kts
-
-        # 3. Wrapper बनाना और APK बिल्ड करना
+        # 4. Generate Wrapper and Build
         gradle wrapper
         chmod +x gradlew
         ./gradlew assembleDebug --stacktrace --no-daemon
