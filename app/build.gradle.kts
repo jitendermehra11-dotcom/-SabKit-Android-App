@@ -22,30 +22,14 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    signingConfigs {
-        create("release") {
-            val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
-            storeFile = file(keystorePath)
-            storePassword = System.getenv("STORE_PASSWORD")
-            keyAlias = "upload"
-            keyPassword = System.getenv("KEY_PASSWORD")
-        }
-        create("debugConfig") {
-            storeFile = file("${rootDir}/debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
-        }
-    }
-
     buildTypes {
         release {
-            isCrunchPngs = false
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("release")
         }
-        debug { signingConfig = signingConfigs.getByName("debugConfig") }
+        debug {
+            isMinifyEnabled = false
+        }
     }
 
     compileOptions {
@@ -71,8 +55,7 @@ android {
 }
 
 secrets {
-    propertiesFileName = ".env"
-    defaultPropertiesFileName = ".env.example"
+    defaultPropertiesFileName = "local.properties"
     ignoreList.add("FIREBASE_APPCHECK_DEBUG_TOKEN")
 }
 
@@ -100,9 +83,12 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
-    implementation("com.google.firebase:firebase-ai:16.0.0-beta01")
-    implementation("com.google.firebase:firebase-appcheck-recaptcha:17.1.2")
-    implementation("com.google.firebase:firebase-appcheck-debug:17.1.2")
+    
+    // Firebase Updated Dependencies
+    implementation("com.google.firebase:firebase-vertexai:16.0.0-beta01")
+    implementation("com.google.firebase:firebase-appcheck-playintegrity")
+    implementation("com.google.firebase:firebase-appcheck-debug")
+    
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
