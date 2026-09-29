@@ -24,9 +24,14 @@ jobs:
 
     - name: Clean structure and regenerate build setup
       run: |
-        # 1. Ensure gradle wrapper exists
-        if [ -d "app/gradle" ]; then cp -r app/gradle . ; fi
-        if [ -f "app/gradlew" ]; then cp app/gradlew . ; cp app/gradlew.bat . 2>/dev/null || true ; fi
+        # 1. Fix Gradle Wrapper Placement
+        mkdir -p gradle/wrapper
+        if [ -d "app/gradle/wrapper" ]; then 
+          cp -r app/gradle/wrapper/* gradle/wrapper/ 
+        fi
+        if [ -f "app/gradlew" ]; then 
+          cp app/gradlew . ; cp app/gradlew.bat . 2>/dev/null || true 
+        fi
 
         # 2. Fix Root settings.gradle.kts
         cat << 'EOF' > settings.gradle.kts
@@ -48,11 +53,18 @@ jobs:
         include(":app")
         EOF
 
-        # 3. Create missing .env and .env.example files for Secrets Plugin
+        # 3. Create gradle.properties with AndroidX enabled
+        cat << 'EOF' > gradle.properties
+        android.useAndroidX=true
+        android.nonTransitiveRClass=true
+        org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+        EOF
+
+        # 4. Create missing .env and .env.example files for Secrets Plugin
         touch .env .env.example
         touch app/.env app/.env.example
 
-        # 4. Write Corrected app/build.gradle.kts
+        # 5. Write Corrected app/build.gradle.kts
         cat << 'EOF' > app/build.gradle.kts
         import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
 
@@ -174,8 +186,7 @@ jobs:
         }
         EOF
 
-        # 5. Generate Fully Compatible Version Catalog
-        mkdir -p gradle
+        # 6. Generate Fully Compatible Version Catalog
         cat << 'EOF' > gradle/libs.versions.toml
         [versions]
         agp = "8.2.2"
@@ -249,10 +260,13 @@ jobs:
         google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
         EOF
 
-        # 6. Build Debug APK
-        gradle wrapper
-        chmod +x gradlew
-        ./gradlew assembleDebug --stacktrace --no-daemon
+        # 7. Build Debug APK
+        if [ -f "./gradlew" ]; then
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace --no-daemon
+        else
+          gradle assembleDebug --stacktrace --no-daemon
+        fi
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
