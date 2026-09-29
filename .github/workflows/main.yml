@@ -22,7 +22,7 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Fix Project Structure, compileSdk and Catalog
+    - name: Fix Moshi KSP and Build APK
       run: |
         # 1. ensure wrapper exists
         if [ -d "app/gradle" ]; then cp -r app/gradle . ; fi
@@ -48,12 +48,14 @@ jobs:
         include(":app")
         EOF
 
-        # 3. Fix compileSdk syntax error in app/build.gradle.kts if needed
+        # 3. Fix compileSdk and Moshi KSP syntax in app/build.gradle.kts
         if [ -f "app/build.gradle.kts" ]; then
           sed -i 's/compileSdk.*/compileSdk = 34/g' app/build.gradle.kts
+          sed -i 's/ksp(libs.moshi.kotlin.codegen)/ksp("com.squareup.moshi:moshi-kotlin-codegen:1.15.0")/g' app/build.gradle.kts
+          sed -i 's/ksp(libs.moshi.kotlin)/ksp("com.squareup.moshi:moshi-kotlin-codegen:1.15.0")/g' app/build.gradle.kts
         fi
 
-        # 4. Generate complete and matched Version Catalog File
+        # 4. Version Catalog
         mkdir -p gradle
         cat << 'EOF' > gradle/libs.versions.toml
         [versions]
@@ -88,7 +90,6 @@ jobs:
         androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
         androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
         
-        # Compose UI libraries matched with app gradle references
         androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
         androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
         androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
