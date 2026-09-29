@@ -22,9 +22,9 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Fix Moshi KSP and Build APK
+    - name: Clean structure and regenerate build.gradle.kts
       run: |
-        # 1. ensure wrapper exists
+        # 1. Ensure gradle wrapper exists
         if [ -d "app/gradle" ]; then cp -r app/gradle . ; fi
         if [ -f "app/gradlew" ]; then cp app/gradlew . ; cp app/gradlew.bat . 2>/dev/null || true ; fi
 
@@ -48,14 +48,129 @@ jobs:
         include(":app")
         EOF
 
-        # 3. Fix compileSdk and Moshi KSP syntax in app/build.gradle.kts
-        if [ -f "app/build.gradle.kts" ]; then
-          sed -i 's/compileSdk.*/compileSdk = 34/g' app/build.gradle.kts
-          sed -i 's/ksp(libs.moshi.kotlin.codegen)/ksp("com.squareup.moshi:moshi-kotlin-codegen:1.15.0")/g' app/build.gradle.kts
-          sed -i 's/ksp(libs.moshi.kotlin)/ksp("com.squareup.moshi:moshi-kotlin-codegen:1.15.0")/g' app/build.gradle.kts
-        fi
+        # 3. Write Corrected app/build.gradle.kts
+        cat << 'EOF' > app/build.gradle.kts
+        import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
 
-        # 4. Version Catalog
+        plugins {
+          alias(libs.plugins.android.application)
+          alias(libs.plugins.kotlin.compose)
+          alias(libs.plugins.google.devtools.ksp)
+          alias(libs.plugins.secrets)
+          alias(libs.plugins.google.services)
+        }
+
+        android {
+          namespace = "com.example"
+          compileSdk = 34
+
+          defaultConfig {
+            applicationId = "com.example"
+            minSdk = 24
+            targetSdk = 34
+            versionCode = 3
+            versionName = "1.0.2"
+
+            testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+          }
+
+          signingConfigs {
+            create("release") {
+              val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
+              storeFile = file(keystorePath)
+              storePassword = System.getenv("STORE_PASSWORD")
+              keyAlias = "upload"
+              keyPassword = System.getenv("KEY_PASSWORD")
+            }
+            create("debugConfig") {
+              storeFile = file("${rootDir}/debug.keystore")
+              storePassword = "android"
+              keyAlias = "androiddebugkey"
+              keyPassword = "android"
+            }
+          }
+
+          buildTypes {
+            release {
+              isCrunchPngs = false
+              isMinifyEnabled = false
+              proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+              signingConfig = signingConfigs.getByName("release")
+            }
+            debug { signingConfig = signingConfigs.getByName("debugConfig") }
+          }
+          compileOptions {
+            sourceCompatibility = JavaVersion.VERSION_11
+            targetCompatibility = JavaVersion.VERSION_11
+          }
+          buildFeatures {
+            compose = true
+            buildConfig = true
+          }
+          testOptions { unitTests { isIncludeAndroidResources = true } }
+          dependenciesInfo {
+            includeInApk = false
+            includeInBundle = true
+          }
+        }
+
+        secrets {
+          propertiesFileName = ".env"
+          defaultPropertiesFileName = ".env.example"
+          ignoreList.add("FIREBASE_APPCHECK_DEBUG_TOKEN")
+        }
+
+        googleServices { missingGoogleServicesStrategy = MissingGoogleServicesStrategy.WARN }
+
+        dependencies {
+          implementation(platform(libs.androidx.compose.bom))
+          implementation(platform(libs.firebase.bom))
+          implementation(libs.androidx.activity.compose)
+          implementation(libs.androidx.compose.material.icons.core)
+          implementation(libs.androidx.compose.material.icons.extended)
+          implementation(libs.androidx.compose.material3)
+          implementation(libs.androidx.compose.ui)
+          implementation(libs.androidx.compose.ui.graphics)
+          implementation(libs.androidx.compose.ui.tooling.preview)
+          implementation(libs.androidx.core.ktx)
+          implementation(libs.androidx.lifecycle.runtime.compose)
+          implementation(libs.androidx.lifecycle.runtime.ktx)
+          implementation(libs.androidx.lifecycle.viewmodel.compose)
+          implementation(libs.androidx.room.ktx)
+          implementation(libs.androidx.room.runtime)
+          implementation(libs.converter.moshi)
+          implementation(libs.firebase.ai)
+          implementation(libs.firebase.appcheck.recaptcha)
+          implementation(libs.firebase.appcheck.debug)
+          implementation(libs.kotlinx.coroutines.android)
+          implementation(libs.kotlinx.coroutines.core)
+          implementation(libs.logging.interceptor)
+          implementation(libs.moshi.kotlin)
+          implementation(libs.okhttp)
+          implementation(libs.retrofit)
+          implementation("com.google.android.gms:play-services-ads:23.6.0")
+          
+          testImplementation(libs.androidx.compose.ui.test.junit4)
+          testImplementation(libs.androidx.junit)
+          testImplementation(libs.junit)
+          testImplementation(libs.kotlinx.coroutines.test)
+          testImplementation(libs.robolectric)
+          
+          androidTestImplementation(platform(libs.androidx.compose.bom))
+          androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+          androidTestImplementation(libs.androidx.espresso.core)
+          androidTestImplementation(libs.androidx.junit)
+          androidTestImplementation(libs.androidx.runner)
+          
+          debugImplementation(libs.androidx.compose.ui.test.manifest)
+          debugImplementation(libs.androidx.compose.ui.tooling)
+          
+          ksp(libs.androidx.room.compiler)
+          ksp("com.squareup.moshi:moshi-kotlin-codegen:1.15.0")
+        }
+        EOF
+
+        # 4. Generate Fully Compatible Version Catalog
         mkdir -p gradle
         cat << 'EOF' > gradle/libs.versions.toml
         [versions]
@@ -100,7 +215,6 @@ jobs:
         androidx-compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
         androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
         
-        androidx-test-runner = { group = "androidx.test", name = "runner", version = "1.5.2" }
         androidx-runner = { group = "androidx.test", name = "runner", version = "1.5.2" }
 
         retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
@@ -112,7 +226,7 @@ jobs:
         androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
         androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 
-        moshi-kotlin-codegen = { group = "com.squareup.moshi", name = "moshi-kotlin-codegen", version.ref = "moshi" }
+        moshi-kotlin = { group = "com.squareup.moshi", name = "moshi-kotlin", version.ref = "moshi" }
         robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
         kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
         kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
