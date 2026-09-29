@@ -22,22 +22,37 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Build Debug APK with Wrapper
+    - name: Fix Missing Version Catalog and Build
       run: |
-        # find real directory containing settings.gradle or build.gradle (excluding root if empty)
-        TARGET_DIR=$(find . -mindepth 2 -name "settings.gradle*" -exec dirname {} \; | head -n 1)
-        if [ -z "$TARGET_DIR" ]; then
-          TARGET_DIR=$(find . -mindepth 2 -name "build.gradle*" -exec dirname {} \; | head -n 1)
-        fi
+        # सही प्रोजेक्ट फोल्डर ढूंढना
+        TARGET_DIR=$(find . -name "settings.gradle*" -exec dirname {} \; | head -n 1)
         if [ -z "$TARGET_DIR" ]; then
           TARGET_DIR="."
         fi
-        
-        echo "Moving into project directory: $TARGET_DIR"
         cd "$TARGET_DIR"
+
+        # gradle/libs.versions.toml फाइल बनाना अगर मौजूद न हो
+        mkdir -p gradle
+        cat << 'EOF' > gradle/libs.versions.toml
+        [versions]
+        agp = "8.2.2"
+        kotlin = "1.9.22"
+        ksp = "1.9.22-1.0.17"
+        secrets = "2.0.1"
+        googleServices = "4.4.1"
+
+        [plugins]
+        android-application = { id = "com.android.application", version.ref = "agp" }
+        kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+        google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+        secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "secrets" }
+        google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+        EOF
+
+        # Wrapper बनाकर APK बिल्ड करना
         gradle wrapper
         chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon
+        ./gradlew assembleDebug --stacktrace --no-daemon
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
