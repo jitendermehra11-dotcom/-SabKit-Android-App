@@ -48,7 +48,7 @@ jobs:
         include(":app")
         EOF
 
-        # 3. Complete Version Catalog File (gradle/libs.versions.toml)
+        # 3. Complete Version Catalog File with CORRECT Kotlin Plugin ID
         mkdir -p gradle
         cat << 'EOF' > gradle/libs.versions.toml
         [versions]
@@ -95,7 +95,7 @@ jobs:
 
         [plugins]
         android-application = { id = "com.android.application", version.ref = "agp" }
-        kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+        kotlin-compose = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
         google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
         secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "secrets" }
         google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
