@@ -24,14 +24,9 @@ jobs:
 
     - name: Clean structure and regenerate build setup
       run: |
-        # 1. Fix Gradle Wrapper Placement
-        mkdir -p gradle/wrapper
-        if [ -d "app/gradle/wrapper" ]; then 
-          cp -r app/gradle/wrapper/* gradle/wrapper/ 
-        fi
-        if [ -f "app/gradlew" ]; then 
-          cp app/gradlew . ; cp app/gradlew.bat . 2>/dev/null || true 
-        fi
+        # 1. Regenerate fresh Gradle Wrapper files
+        gradle wrapper --gradle-version 8.4
+        chmod +x gradlew
 
         # 2. Fix Root settings.gradle.kts
         cat << 'EOF' > settings.gradle.kts
@@ -60,7 +55,7 @@ jobs:
         org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
         EOF
 
-        # 4. Create missing .env and .env.example files for Secrets Plugin
+        # 4. Create missing .env files for Secrets Plugin
         touch .env .env.example
         touch app/.env app/.env.example
 
@@ -186,7 +181,8 @@ jobs:
         }
         EOF
 
-        # 6. Generate Fully Compatible Version Catalog
+        # 6. Generate Version Catalog
+        mkdir -p gradle
         cat << 'EOF' > gradle/libs.versions.toml
         [versions]
         agp = "8.2.2"
@@ -260,13 +256,8 @@ jobs:
         google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
         EOF
 
-        # 7. Build Debug APK
-        if [ -f "./gradlew" ]; then
-          chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace --no-daemon
-        else
-          gradle assembleDebug --stacktrace --no-daemon
-        fi
+        # 7. Build Debug APK using clean wrapper
+        ./gradlew assembleDebug --stacktrace --no-daemon
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
