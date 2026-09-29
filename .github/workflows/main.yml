@@ -22,9 +22,9 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Fix Directory Structure and Regenerate Configuration
+    - name: Fix Directory Structure and Clean Build Setup
       run: |
-        # 1. Fix nested app directory issue if it exists
+        # 1. Fix nested app directory issue if exists
         if [ -d "app/app" ]; then
           cp -r app/app/* app/ 2>/dev/null || true
           rm -rf app/app
@@ -34,7 +34,7 @@ jobs:
         gradle wrapper --gradle-version 8.4
         chmod +x gradlew
 
-        # 3. Fix Root settings.gradle.kts
+        # 3. Create Root settings.gradle.kts
         cat << 'EOF' > settings.gradle.kts
         pluginManagement {
             repositories {
@@ -54,19 +54,22 @@ jobs:
         include(":app")
         EOF
 
-        # 4. Create gradle.properties with AndroidX enabled
+        # 4. Create gradle.properties
         cat << 'EOF' > gradle.properties
         android.useAndroidX=true
         android.nonTransitiveRClass=true
         org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
         EOF
 
-        # 5. Create missing .env files for Secrets Plugin
+        # 5. Create missing .env files
         touch .env .env.example
         touch app/.env app/.env.example
 
-        # 6. Write Corrected app/build.gradle.kts using direct Plugin IDs
+        # 6. Delete old build.gradle.kts and recreate clean one
+        rm -f app/build.gradle.kts
         mkdir -p app
+
+        # 7. Write Corrected app/build.gradle.kts
         cat << 'EOF' > app/build.gradle.kts
         import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
 
@@ -144,126 +147,55 @@ jobs:
         googleServices { missingGoogleServicesStrategy = MissingGoogleServicesStrategy.WARN }
 
         dependencies {
-          implementation(platform(libs.androidx.compose.bom))
-          implementation(platform(libs.firebase.bom))
-          implementation(libs.androidx.activity.compose)
-          implementation(libs.androidx.compose.material.icons.core)
-          implementation(libs.androidx.compose.material.icons.extended)
-          implementation(libs.androidx.compose.material3)
-          implementation(libs.androidx.compose.ui)
-          implementation(libs.androidx.compose.ui.graphics)
-          implementation(libs.androidx.compose.ui.tooling.preview)
-          implementation(libs.androidx.core.ktx)
-          implementation(libs.androidx.lifecycle.runtime.compose)
-          implementation(libs.androidx.lifecycle.runtime.ktx)
-          implementation(libs.androidx.lifecycle.viewmodel.compose)
-          implementation(libs.androidx.room.ktx)
-          implementation(libs.androidx.room.runtime)
-          implementation(libs.converter.moshi)
-          implementation(libs.firebase.ai)
-          implementation(libs.firebase.appcheck.recaptcha)
-          implementation(libs.firebase.appcheck.debug)
-          implementation(libs.kotlinx.coroutines.android)
-          implementation(libs.kotlinx.coroutines.core)
-          implementation(libs.logging.interceptor)
-          implementation(libs.moshi.kotlin)
-          implementation(libs.okhttp)
-          implementation(libs.retrofit)
+          val composeBom = platform("androidx.compose:compose-bom:2023.08.00")
+          implementation(composeBom)
+          androidTestImplementation(composeBom)
+
+          val firebaseBom = platform("com.google.firebase:firebase-bom:32.7.2")
+          implementation(firebaseBom)
+
+          implementation("androidx.activity:activity-compose:1.8.2")
+          implementation("androidx.compose.material:material-icons-core")
+          implementation("androidx.compose.material:material-icons-extended")
+          implementation("androidx.compose.material3:material3")
+          implementation("androidx.compose.ui:ui")
+          implementation("androidx.compose.ui:ui-graphics")
+          implementation("androidx.compose.ui:ui-tooling-preview")
+          implementation("androidx.core:core-ktx:1.12.0")
+          implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+          implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+          implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+          implementation("androidx.room:room-ktx:2.6.1")
+          implementation("androidx.room:room-runtime:2.6.1")
+          implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
+          implementation("com.google.firebase:firebase-ai:16.0.0-beta01")
+          implementation("com.google.firebase:firebase-appcheck-recaptcha:17.1.2")
+          implementation("com.google.firebase:firebase-appcheck-debug:17.1.2")
+          implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+          implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+          implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+          implementation("com.squareup.moshi:moshi-kotlin:1.15.0")
+          implementation("com.squareup.okhttp3:okhttp:4.12.0")
+          implementation("com.squareup.retrofit2:retrofit:2.9.0")
           implementation("com.google.android.gms:play-services-ads:23.6.0")
           
-          testImplementation(libs.androidx.compose.ui.test.junit4)
-          testImplementation(libs.androidx.junit)
-          testImplementation(libs.junit)
-          testImplementation(libs.kotlinx.coroutines.test)
-          testImplementation(libs.robolectric)
+          testImplementation("androidx.compose.ui:ui-test-junit4")
+          testImplementation("androidx.test.ext:junit:1.1.5")
+          testImplementation("junit:junit:4.13.2")
+          testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+          testImplementation("org.robolectric:robolectric:4.11.1")
           
-          androidTestImplementation(platform(libs.androidx.compose.bom))
-          androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-          androidTestImplementation(libs.androidx.espresso.core)
-          androidTestImplementation(libs.androidx.junit)
-          androidTestImplementation(libs.androidx.runner)
+          androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+          androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+          androidTestImplementation("androidx.test.ext:junit:1.1.5")
+          androidTestImplementation("androidx.test:runner:1.5.2")
           
-          debugImplementation(libs.androidx.compose.ui.test.manifest)
-          debugImplementation(libs.androidx.compose.ui.tooling)
+          debugImplementation("androidx.compose.ui:ui-test-manifest")
+          debugImplementation("androidx.compose.ui:ui-tooling")
           
-          ksp(libs.androidx.room.compiler)
+          ksp("androidx.room:room-compiler:2.6.1")
           ksp("com.squareup.moshi:moshi-kotlin-codegen:1.15.0")
         }
-        EOF
-
-        # 7. Generate Version Catalog in gradle/libs.versions.toml
-        mkdir -p gradle
-        cat << 'EOF' > gradle/libs.versions.toml
-        [versions]
-        agp = "8.2.2"
-        kotlin = "1.9.22"
-        ksp = "1.9.22-1.0.17"
-        secrets = "2.0.1"
-        googleServices = "4.4.1"
-        coreKtx = "1.12.0"
-        junit = "4.13.2"
-        junitVersion = "1.1.5"
-        espressoCore = "3.5.1"
-        lifecycleRuntimeKtx = "2.7.0"
-        activityCompose = "1.8.2"
-        composeBom = "2023.08.00"
-        retrofit = "2.9.0"
-        okhttp = "4.12.0"
-        room = "2.6.1"
-        moshi = "1.15.0"
-        robolectric = "4.11.1"
-        coroutines = "1.7.3"
-        firebaseBom = "32.7.2"
-
-        [libraries]
-        androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-        junit = { group = "junit", name = "junit", version.ref = "junit" }
-        androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-        androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-        androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
-        androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeKtx" }
-        androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
-        androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
-        androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
-        
-        androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
-        androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
-        androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
-        androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
-        androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
-        androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
-        androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
-        androidx-compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
-        androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
-        
-        androidx-runner = { group = "androidx.test", name = "runner", version = "1.5.2" }
-
-        retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
-        converter-moshi = { group = "com.squareup.retrofit2", name = "converter-moshi", version.ref = "retrofit" }
-        okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
-        logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
-
-        androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
-        androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
-        androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
-
-        moshi-kotlin = { group = "com.squareup.moshi", name = "moshi-kotlin", version.ref = "moshi" }
-        robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
-        kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
-        kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
-        kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
-
-        firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
-        firebase-ai = { group = "com.google.firebase", name = "firebase-ai", version = "16.0.0-beta01" }
-        firebase-appcheck-recaptcha = { group = "com.google.firebase", name = "firebase-appcheck-recaptcha", version = "17.1.2" }
-        firebase-appcheck-debug = { group = "com.google.firebase", name = "firebase-appcheck-debug", version = "17.1.2" }
-
-        [plugins]
-        android-application = { id = "com.android.application", version.ref = "agp" }
-        kotlin-compose = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-        google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-        secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "secrets" }
-        google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
         EOF
 
         # 8. Build Debug APK
