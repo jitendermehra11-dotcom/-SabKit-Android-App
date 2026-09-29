@@ -24,9 +24,17 @@ jobs:
 
     - name: Build Debug APK with Wrapper
       run: |
-        if [ -f "SabKit/settings.gradle.kts" ] || [ -f "SabKit/build.gradle.kts" ] || [ -f "SabKit/build.gradle" ]; then
-          cd SabKit
+        # find real directory containing settings.gradle or build.gradle (excluding root if empty)
+        TARGET_DIR=$(find . -mindepth 2 -name "settings.gradle*" -exec dirname {} \; | head -n 1)
+        if [ -z "$TARGET_DIR" ]; then
+          TARGET_DIR=$(find . -mindepth 2 -name "build.gradle*" -exec dirname {} \; | head -n 1)
         fi
+        if [ -z "$TARGET_DIR" ]; then
+          TARGET_DIR="."
+        fi
+        
+        echo "Moving into project directory: $TARGET_DIR"
+        cd "$TARGET_DIR"
         gradle wrapper
         chmod +x gradlew
         ./gradlew assembleDebug --no-daemon
