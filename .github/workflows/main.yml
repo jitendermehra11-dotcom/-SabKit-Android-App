@@ -22,13 +22,13 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
-    - name: Clean structure and Fix Version Catalog
+    - name: Fix Project Structure, compileSdk and Catalog
       run: |
         # 1. ensure wrapper exists
         if [ -d "app/gradle" ]; then cp -r app/gradle . ; fi
         if [ -f "app/gradlew" ]; then cp app/gradlew . ; cp app/gradlew.bat . 2>/dev/null || true ; fi
 
-        # 2. Root settings.gradle.kts
+        # 2. Fix Root settings.gradle.kts
         cat << 'EOF' > settings.gradle.kts
         pluginManagement {
             repositories {
@@ -48,7 +48,12 @@ jobs:
         include(":app")
         EOF
 
-        # 3. Fully Complete Version Catalog File
+        # 3. Fix compileSdk syntax error in app/build.gradle.kts if needed
+        if [ -f "app/build.gradle.kts" ]; then
+          sed -i 's/compileSdk.*/compileSdk = 34/g' app/build.gradle.kts
+        fi
+
+        # 4. Generate complete and matched Version Catalog File
         mkdir -p gradle
         cat << 'EOF' > gradle/libs.versions.toml
         [versions]
@@ -82,16 +87,20 @@ jobs:
         androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
         androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
         androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
-        androidx-ui = { group = "androidx.compose.ui", name = "ui" }
-        androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
-        androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
-        androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
-        androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
-        androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
-        androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+        
+        # Compose UI libraries matched with app gradle references
+        androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+        androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+        androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+        androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+        androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+        androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+        androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
         androidx-compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
         androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+        
         androidx-test-runner = { group = "androidx.test", name = "runner", version = "1.5.2" }
+        androidx-runner = { group = "androidx.test", name = "runner", version = "1.5.2" }
 
         retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
         converter-moshi = { group = "com.squareup.retrofit2", name = "converter-moshi", version.ref = "retrofit" }
@@ -121,7 +130,7 @@ jobs:
         google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
         EOF
 
-        # 4. Generate Wrapper and Build
+        # 5. Build Debug APK
         gradle wrapper
         chmod +x gradlew
         ./gradlew assembleDebug --stacktrace --no-daemon
