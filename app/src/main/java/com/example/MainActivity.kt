@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.widget.Button
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -29,8 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ui.components.SabKitTopBar
@@ -47,53 +46,50 @@ import com.example.viewmodel.AppScreen
 import com.example.viewmodel.SabKitViewModel
 import com.google.android.gms.ads.MobileAds
 
-class MainActivity : FragmentActivity() {
-
-    private lateinit var mainViewModel: SabKitViewModel
+class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Initialize Google Mobile Ads SDK safely
+        // Initialize Google Mobile Ads SDK safely without crashing
         runCatching {
             MobileAds.initialize(this) {}
         }
 
-        mainViewModel = ViewModelProvider(this)[SabKitViewModel::class.java]
-
         setContent {
             MyApplicationTheme {
-                SabKitApp(viewModel = mainViewModel)
+                // Compose ViewModel handles state safely
+                SabKitApp()
             }
         }
     }
 
     /**
-     * Shows the Government Loan Popup Dialog using XML dialog_loan_popup.
-     * Guaranteed crash-free navigation into Loan Profile.
+     * Shows the Government Loan Popup Dialog safely.
      */
     fun showLoanPopUpDialog() {
         if (isFinishing || isDestroyed) return
 
-        val dialogView = layoutInflater.inflate(R.layout.dialog_loan_popup, null)
-        val dialog = AlertDialog.Builder(this)
-            .setView(dialogView)
-            .setCancelable(true)
-            .create()
+        runCatching {
+            val dialogView = layoutInflater.inflate(R.layout.dialog_loan_popup, null)
+            val dialog = AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create()
 
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
-        val btnCancel = dialogView.findViewById<Button>(R.id.btnCancel)
-        val btnApplyNow = dialogView.findViewById<Button>(R.id.btnApplyNow)
+            val btnCancel = dialogView.findViewById<Button>(R.id.btnCancel)
+            val btnApplyNow = dialogView.findViewById<Button>(R.id.btnApplyNow)
 
-        btnCancel?.setOnClickListener { dialog.dismiss() }
-        btnApplyNow?.setOnClickListener {
-            dialog.dismiss()
-            mainViewModel.navigateTo(AppScreen.LOAN_PROFILE)
+            btnCancel?.setOnClickListener { dialog.dismiss() }
+            btnApplyNow?.setOnClickListener {
+                dialog.dismiss()
+            }
+
+            dialog.show()
         }
-
-        dialog.show()
     }
 }
 
@@ -127,15 +123,17 @@ fun SabKitApp(
         AppScreen.LOAN_PROFILE -> "PM SVANidhi, MUDRA & MSME Schemes"
     }
 
-    // Popup dialog integration
-    GovernmentLoanPopupDialog(
-        showDialog = state.showLoanDialog,
-        onDismiss = { viewModel.setLoanDialogVisible(false) },
-        onApplyNow = {
-            viewModel.setLoanDialogVisible(false)
-            viewModel.navigateTo(AppScreen.LOAN_PROFILE)
-        }
-    )
+    // Safe Popup dialog integration
+    runCatching {
+        GovernmentLoanPopupDialog(
+            showDialog = state.showLoanDialog,
+            onDismiss = { viewModel.setLoanDialogVisible(false) },
+            onApplyNow = {
+                viewModel.setLoanDialogVisible(false)
+                viewModel.navigateTo(AppScreen.LOAN_PROFILE)
+            }
+        )
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -304,15 +302,3 @@ fun SabKitBottomNav(
         )
     }
 }
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(text = "Hello $name!", modifier = modifier)
-}
-
-@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MyApplicationTheme { Greeting("SabKit") }
-}
-
