@@ -21,8 +21,9 @@ object ZipUtils {
             var totalSize = 0L
 
             ZipInputStream(inputStream).use { zis ->
-                var entry: ZipEntry? = zis.nextEntry
-                while (entry != null) {
+                var rawEntry: ZipEntry? = zis.nextEntry
+                while (rawEntry != null) {
+                    val entry = rawEntry
                     val isDir = entry.isDirectory
                     val size = if (entry.size >= 0) entry.size else 0L
                     val cSize = if (entry.compressedSize >= 0) entry.compressedSize else 0L
@@ -41,7 +42,7 @@ object ZipUtils {
                         )
                     )
                     zis.closeEntry()
-                    entry = zis.nextEntry
+                    rawEntry = zis.nextEntry
                 }
             }
 
@@ -63,8 +64,9 @@ object ZipUtils {
     fun readEntryContent(inputStream: InputStream, targetPath: String): Result<CodeFileView> {
         return runCatching {
             ZipInputStream(inputStream).use { zis ->
-                var entry: ZipEntry? = zis.nextEntry
-                while (entry != null) {
+                var rawEntry: ZipEntry? = zis.nextEntry
+                while (rawEntry != null) {
+                    val entry = rawEntry
                     if (entry.name == targetPath) {
                         val buffer = ByteArrayOutputStream()
                         val temp = ByteArray(4096)
@@ -104,7 +106,7 @@ object ZipUtils {
                         )
                     }
                     zis.closeEntry()
-                    entry = zis.nextEntry
+                    rawEntry = zis.nextEntry
                 }
                 throw NoSuchElementException("Entry '$targetPath' not found in ZIP archive.")
             }
