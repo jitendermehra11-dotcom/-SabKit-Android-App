@@ -1,13 +1,9 @@
 package com.example
 
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.widget.Button
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -52,43 +48,18 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Initialize Google Mobile Ads SDK safely without crashing
+        // Initialize Google Mobile Ads SDK safely
         runCatching {
             MobileAds.initialize(this) {}
         }
 
         setContent {
             MyApplicationTheme {
-                // Compose ViewModel handles state safely
-                SabKitApp()
+                // Completely safe Compose Entry
+                runCatching {
+                    SabKitApp()
+                }
             }
-        }
-    }
-
-    /**
-     * Shows the Government Loan Popup Dialog safely.
-     */
-    fun showLoanPopUpDialog() {
-        if (isFinishing || isDestroyed) return
-
-        runCatching {
-            val dialogView = layoutInflater.inflate(R.layout.dialog_loan_popup, null)
-            val dialog = AlertDialog.Builder(this)
-                .setView(dialogView)
-                .setCancelable(true)
-                .create()
-
-            dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-
-            val btnCancel = dialogView.findViewById<Button>(R.id.btnCancel)
-            val btnApplyNow = dialogView.findViewById<Button>(R.id.btnApplyNow)
-
-            btnCancel?.setOnClickListener { dialog.dismiss() }
-            btnApplyNow?.setOnClickListener {
-                dialog.dismiss()
-            }
-
-            dialog.show()
         }
     }
 }
@@ -123,7 +94,7 @@ fun SabKitApp(
         AppScreen.LOAN_PROFILE -> "PM SVANidhi, MUDRA & MSME Schemes"
     }
 
-    // Safe Popup dialog integration
+    // Pure Jetpack Compose Popup Dialog (Safe Integration)
     runCatching {
         GovernmentLoanPopupDialog(
             showDialog = state.showLoanDialog,
