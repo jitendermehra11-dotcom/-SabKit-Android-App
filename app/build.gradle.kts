@@ -1,5 +1,3 @@
-import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -31,7 +29,7 @@ android {
         }
     }
 
-        compileOptions {
+    compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -61,8 +59,6 @@ secrets {
     defaultPropertiesFileName = "local.properties"
     ignoreList.add("FIREBASE_APPCHECK_DEBUG_TOKEN")
 }
-
-googleServices { missingGoogleServicesStrategy = MissingGoogleServicesStrategy.WARN }
 
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2024.02.01")
