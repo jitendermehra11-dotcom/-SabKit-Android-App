@@ -1,7 +1,6 @@
 package com.example.viewmodel
 
 import android.app.Application
-import android.content.Context
 import android.net.Uri
 import android.os.Build
 import androidx.lifecycle.AndroidViewModel
@@ -100,24 +99,24 @@ class SabKitViewModel(application: Application) : AndroidViewModel(application) 
     private val _uiState = MutableStateFlow(SabKitUiState())
     val uiState: StateFlow<SabKitUiState> = _uiState.asStateFlow()
 
-    // Cached raw zip bytes (for sample project or small picks)
     private var inMemoryZipBytes: ByteArray? = null
     private var lastLoadedZipUri: Uri? = null
 
     init {
+        // Safe lightweight setup in init block
         runCatching { initAdMobUnits() }
         runCatching { loadDeviceSpecs() }
         runCatching { refreshAppDebugKey() }
         runCatching { refreshWifiStats() }
-        
-        // Safely load sample project without crashing the app on startup
-        runCatching {
-            loadSampleProject()
-        }
     }
 
     fun navigateTo(screen: AppScreen) {
         _uiState.update { it.copy(currentScreen = screen) }
+        
+        // Load heavy sample zip only when user opens ZIP viewer
+        if (screen == AppScreen.ZIP_VIEWER && _uiState.value.zipArchive == null) {
+            loadSampleProject()
+        }
     }
 
     fun setLoanDialogVisible(visible: Boolean) {
@@ -163,16 +162,14 @@ class SabKitViewModel(application: Application) : AndroidViewModel(application) 
     // -------------------------------------------------------------
 
     fun loadSampleProject() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isZipLoading = true, zipError = null) }
-            try {
+            runCatching {
                 val sampleBytes = ZipUtils.createSampleAndroidProjectZip()
                 inMemoryZipBytes = sampleBytes
                 lastLoadedZipUri = null
 
-                val parseResult = withContext(Dispatchers.IO) {
-                    ZipUtils.parseZip(ByteArrayInputStream(sampleBytes), "SabKitSampleProject.zip")
-                }
+                val parseResult = ZipUtils.parseZip(ByteArrayInputStream(sampleBytes), "SabKitSampleProject.zip")
 
                 parseResult.onSuccess { archive ->
                     _uiState.update {
@@ -191,7 +188,7 @@ class SabKitViewModel(application: Application) : AndroidViewModel(application) 
                         )
                     }
                 }
-            } catch (e: Exception) {
+            }.onFailure { e ->
                 _uiState.update {
                     it.copy(
                         isZipLoading = false,
@@ -338,13 +335,13 @@ class SabKitViewModel(application: Application) : AndroidViewModel(application) 
 
     fun refreshAppDebugKey() {
         viewModelScope.launch {
-            try {
+            runCatching {
                 val context = getApplication<Application>()
                 val keyInfo = withContext(Dispatchers.IO) {
                     CryptoUtils.getAppSignatureInfo(context)
                 }
                 _uiState.update { it.copy(appDebugKey = keyInfo) }
-            } catch (_: Exception) {}
+            }
         }
     }
 
@@ -423,13 +420,13 @@ class SabKitViewModel(application: Application) : AndroidViewModel(application) 
 
     fun refreshWifiStats() {
         viewModelScope.launch {
-            try {
+            runCatching {
                 val context = getApplication<Application>()
                 val stats = withContext(Dispatchers.IO) {
                     NetworkTimeUtils.getWifiAndNetworkStats(context)
                 }
                 _uiState.update { it.copy(wifiStats = stats) }
-            } catch (t: Throwable) {
+            }.onFailure { t ->
                 _uiState.update {
                     it.copy(
                         wifiStats = WifiStats(
