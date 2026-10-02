@@ -105,12 +105,15 @@ class SabKitViewModel(application: Application) : AndroidViewModel(application) 
     private var lastLoadedZipUri: Uri? = null
 
     init {
-        initAdMobUnits()
-        loadDeviceSpecs()
-        refreshAppDebugKey()
-        refreshWifiStats()
-        // Pre-load sample zip so the user has immediate data to explore
-        loadSampleProject()
+        runCatching { initAdMobUnits() }
+        runCatching { loadDeviceSpecs() }
+        runCatching { refreshAppDebugKey() }
+        runCatching { refreshWifiStats() }
+        
+        // Safely load sample project without crashing the app on startup
+        runCatching {
+            loadSampleProject()
+        }
     }
 
     fun navigateTo(screen: AppScreen) {
@@ -213,7 +216,6 @@ class SabKitViewModel(application: Application) : AndroidViewModel(application) 
                     return@launch
                 }
 
-                // Copy to byte array or cache if size permits, otherwise parse directly
                 val bytes = withContext(Dispatchers.IO) {
                     stream.use { it.readBytes() }
                 }
@@ -336,11 +338,13 @@ class SabKitViewModel(application: Application) : AndroidViewModel(application) 
 
     fun refreshAppDebugKey() {
         viewModelScope.launch {
-            val context = getApplication<Application>()
-            val keyInfo = withContext(Dispatchers.IO) {
-                CryptoUtils.getAppSignatureInfo(context)
-            }
-            _uiState.update { it.copy(appDebugKey = keyInfo) }
+            try {
+                val context = getApplication<Application>()
+                val keyInfo = withContext(Dispatchers.IO) {
+                    CryptoUtils.getAppSignatureInfo(context)
+                }
+                _uiState.update { it.copy(appDebugKey = keyInfo) }
+            } catch (_: Exception) {}
         }
     }
 
@@ -414,7 +418,7 @@ class SabKitViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     // -------------------------------------------------------------
-    // WIFI STATISTICS & SNTP TIME (Crash-safe & updated endpoint)
+    // WIFI STATISTICS & SNTP TIME
     // -------------------------------------------------------------
 
     fun refreshWifiStats() {
