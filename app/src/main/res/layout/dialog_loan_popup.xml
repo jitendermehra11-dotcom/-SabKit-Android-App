@@ -7,7 +7,7 @@
     android:background="@android:color/white">
 
     <TextView
-        android:id="@+id/tvLoanTitle"
+        android:id="@+id/tvIconTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="सरकारी लोन एवं बिजनेस सहायता"
@@ -17,10 +17,10 @@
         android:gravity="center" />
 
     <TextView
-        android:id="@+id/tvLoanDesc"
+        android:id="@+id/tvIconDesc"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="क्या आपको पीएम स्वनिधि, मुद्रा या MSME लोन की आवश्यकता है? तुरंत अपनी प्रोफाइल सेटअप करें।"
+        android:text="क्या आपको पीएम स्वनिधि, मुद्रा या MSME लोन की आवश्यकता है? तुरंत अपनी पात्रता चेक करें।"
         android:textSize="14sp"
         android:textColor="#555555"
         android:gravity="center"
@@ -38,7 +38,6 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="बाद में"
-            android:backgroundTint="#888888"
             android:textColor="@android:color/white"
             android:layout_marginEnd="8dp" />
 
@@ -47,8 +46,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="अभी सेटअप करें"
-            android:backgroundTint="#FF6F00"
+            android:text="अभी आवेदन करें"
             android:textColor="@android:color/white" />
     </LinearLayout>
 </LinearLayout>
