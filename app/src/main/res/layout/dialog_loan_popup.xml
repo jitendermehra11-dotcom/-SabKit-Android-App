@@ -1,37 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="@android:color/white">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesCondition" />
+    <TextView
+        android:id="@+id/tvIconTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="सरकारी लोन एवं बिजनेस सहायता"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:gravity="center" />
 
-    <application
-        android:allowBackup="true"
-        android:icon="@drawable/ic_sabkit_logo"
-        android:label="@string/app_name"
-        android:roundIcon="@drawable/ic_sabkit_logo"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
+    <TextView
+        android:id="@+id/tvIconDesc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="क्या आपको पीएम स्वनिधि, मुद्रा या MSME लोन की आवश्यकता है? तुरंत अपनी पात्रता चेक करें।"
+        android:textSize="14sp"
+        android:textColor="#555555"
+        android:gravity="center"
+        android:layout_marginTop="10dp" />
 
-        <!-- Google AdMob App ID (Official Test ID) -->
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-394025609942544~3347511713" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="20dp">
 
-        <activity
-            android:name=".MainActivity"
-            android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
-            android:windowSoftInputMode="adjustResize">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="बाद में"
+            android:textColor="@android:color/white"
+            android:layout_marginEnd="8dp" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-    </application>
-
-</manifest>
+        <Button
+            android:id="@+id/btnApplyNow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="अभी आवेदन करें"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+</LinearLayout>
