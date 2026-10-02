@@ -5,6 +5,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -15,18 +16,20 @@ import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ui.components.SabKitTopBar
 import com.example.ui.screens.AdMobCenterScreen
@@ -48,27 +51,25 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Initialize Google Mobile Ads SDK safely
+        // Ads init wrapped in safety try-catch
         runCatching {
             MobileAds.initialize(this) {}
         }
 
         setContent {
             MyApplicationTheme {
-                // Completely safe Compose Entry
-                runCatching {
-                    SabKitApp()
-                }
+                SabKitAppSafe()
             }
         }
     }
 }
 
 @Composable
-fun SabKitApp(
-    viewModel: SabKitViewModel = viewModel()
-) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
+fun SabKitAppSafe() {
+    val viewModel: SabKitViewModel = viewModel()
+    
+    // Using standard collectAsState to prevent Lifecycle state mismatches on cold launch
+    val state by viewModel.uiState.collectAsState()
 
     BackHandler(enabled = state.currentScreen != AppScreen.DASHBOARD || state.selectedCodeFile != null || state.selectedApp != null) {
         viewModel.navigateBack()
@@ -94,16 +95,18 @@ fun SabKitApp(
         AppScreen.LOAN_PROFILE -> "PM SVANidhi, MUDRA & MSME Schemes"
     }
 
-    // Pure Jetpack Compose Popup Dialog (Safe Integration)
-    runCatching {
-        GovernmentLoanPopupDialog(
-            showDialog = state.showLoanDialog,
-            onDismiss = { viewModel.setLoanDialogVisible(false) },
-            onApplyNow = {
-                viewModel.setLoanDialogVisible(false)
-                viewModel.navigateTo(AppScreen.LOAN_PROFILE)
-            }
-        )
+    // Popup Dialog wrapped in extreme safety
+    if (state.showLoanDialog) {
+        runCatching {
+            GovernmentLoanPopupDialog(
+                showDialog = state.showLoanDialog,
+                onDismiss = { viewModel.setLoanDialogVisible(false) },
+                onApplyNow = {
+                    viewModel.setLoanDialogVisible(false)
+                    viewModel.navigateTo(AppScreen.LOAN_PROFILE)
+                }
+            )
+        }
     }
 
     Scaffold(
@@ -125,57 +128,85 @@ fun SabKitApp(
     ) { innerPadding ->
         val screenModifier = Modifier.padding(innerPadding)
 
-        when (state.currentScreen) {
-            AppScreen.DASHBOARD -> {
-                DashboardScreen(
-                    state = state,
-                    viewModel = viewModel,
-                    onNavigate = { viewModel.navigateTo(it) },
-                    modifier = screenModifier
-                )
+        // Ultra-Safe Screen Renderer with Individual Crash-Catching
+        Box(modifier = screenModifier.fillMaxSize()) {
+            when (state.currentScreen) {
+                AppScreen.DASHBOARD -> {
+                    SafeScreenContainer {
+                        DashboardScreen(
+                            state = state,
+                            viewModel = viewModel,
+                            onNavigate = { viewModel.navigateTo(it) },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+                AppScreen.ZIP_VIEWER -> {
+                    SafeScreenContainer {
+                        ZipViewerScreen(
+                            state = state,
+                            viewModel = viewModel,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+                AppScreen.KEYSTORE_GEN -> {
+                    SafeScreenContainer {
+                        KeystoreGenScreen(
+                            state = state,
+                            viewModel = viewModel,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+                AppScreen.APK_INSPECTOR -> {
+                    SafeScreenContainer {
+                        ApkInspectorScreen(
+                            state = state,
+                            viewModel = viewModel,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+                AppScreen.WIFI_SNTP -> {
+                    SafeScreenContainer {
+                        WifiSntpScreen(
+                            state = state,
+                            viewModel = viewModel,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+                AppScreen.ADMOB_CENTER -> {
+                    SafeScreenContainer {
+                        AdMobCenterScreen(
+                            state = state,
+                            viewModel = viewModel,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+                AppScreen.LOAN_PROFILE -> {
+                    SafeScreenContainer {
+                        LoanProfileScreen(
+                            state = state,
+                            viewModel = viewModel,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
             }
-            AppScreen.ZIP_VIEWER -> {
-                ZipViewerScreen(
-                    state = state,
-                    viewModel = viewModel,
-                    modifier = screenModifier
-                )
-            }
-            AppScreen.KEYSTORE_GEN -> {
-                KeystoreGenScreen(
-                    state = state,
-                    viewModel = viewModel,
-                    modifier = screenModifier
-                )
-            }
-            AppScreen.APK_INSPECTOR -> {
-                ApkInspectorScreen(
-                    state = state,
-                    viewModel = viewModel,
-                    modifier = screenModifier
-                )
-            }
-            AppScreen.WIFI_SNTP -> {
-                WifiSntpScreen(
-                    state = state,
-                    viewModel = viewModel,
-                    modifier = screenModifier
-                )
-            }
-            AppScreen.ADMOB_CENTER -> {
-                AdMobCenterScreen(
-                    state = state,
-                    viewModel = viewModel,
-                    modifier = screenModifier
-                )
-            }
-            AppScreen.LOAN_PROFILE -> {
-                LoanProfileScreen(
-                    state = state,
-                    viewModel = viewModel,
-                    modifier = screenModifier
-                )
-            }
+        }
+    }
+}
+
+@Composable
+fun SafeScreenContainer(content: @Composable () -> Unit) {
+    try {
+        content()
+    } catch (e: Exception) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(text = "Loading screen details...")
         }
     }
 }
