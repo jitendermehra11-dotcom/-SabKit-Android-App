@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Wifi
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -25,7 +24,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -51,7 +49,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Ads init wrapped in safety try-catch
+        // Ads initialization safely
         runCatching {
             MobileAds.initialize(this) {}
         }
@@ -67,8 +65,6 @@ class MainActivity : AppCompatActivity() {
 @Composable
 fun SabKitAppSafe() {
     val viewModel: SabKitViewModel = viewModel()
-    
-    // Using standard collectAsState to prevent Lifecycle state mismatches on cold launch
     val state by viewModel.uiState.collectAsState()
 
     BackHandler(enabled = state.currentScreen != AppScreen.DASHBOARD || state.selectedCodeFile != null || state.selectedApp != null) {
@@ -95,18 +91,16 @@ fun SabKitAppSafe() {
         AppScreen.LOAN_PROFILE -> "PM SVANidhi, MUDRA & MSME Schemes"
     }
 
-    // Popup Dialog wrapped in extreme safety
+    // Pure Compose Dialog
     if (state.showLoanDialog) {
-        runCatching {
-            GovernmentLoanPopupDialog(
-                showDialog = state.showLoanDialog,
-                onDismiss = { viewModel.setLoanDialogVisible(false) },
-                onApplyNow = {
-                    viewModel.setLoanDialogVisible(false)
-                    viewModel.navigateTo(AppScreen.LOAN_PROFILE)
-                }
-            )
-        }
+        GovernmentLoanPopupDialog(
+            showDialog = state.showLoanDialog,
+            onDismiss = { viewModel.setLoanDialogVisible(false) },
+            onApplyNow = {
+                viewModel.setLoanDialogVisible(false)
+                viewModel.navigateTo(AppScreen.LOAN_PROFILE)
+            }
+        )
     }
 
     Scaffold(
@@ -128,85 +122,59 @@ fun SabKitAppSafe() {
     ) { innerPadding ->
         val screenModifier = Modifier.padding(innerPadding)
 
-        // Ultra-Safe Screen Renderer with Individual Crash-Catching
         Box(modifier = screenModifier.fillMaxSize()) {
             when (state.currentScreen) {
                 AppScreen.DASHBOARD -> {
-                    SafeScreenContainer {
-                        DashboardScreen(
-                            state = state,
-                            viewModel = viewModel,
-                            onNavigate = { viewModel.navigateTo(it) },
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
+                    DashboardScreen(
+                        state = state,
+                        viewModel = viewModel,
+                        onNavigate = { viewModel.navigateTo(it) },
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
                 AppScreen.ZIP_VIEWER -> {
-                    SafeScreenContainer {
-                        ZipViewerScreen(
-                            state = state,
-                            viewModel = viewModel,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
+                    ZipViewerScreen(
+                        state = state,
+                        viewModel = viewModel,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
                 AppScreen.KEYSTORE_GEN -> {
-                    SafeScreenContainer {
-                        KeystoreGenScreen(
-                            state = state,
-                            viewModel = viewModel,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
+                    KeystoreGenScreen(
+                        state = state,
+                        viewModel = viewModel,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
                 AppScreen.APK_INSPECTOR -> {
-                    SafeScreenContainer {
-                        ApkInspectorScreen(
-                            state = state,
-                            viewModel = viewModel,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
+                    ApkInspectorScreen(
+                        state = state,
+                        viewModel = viewModel,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
                 AppScreen.WIFI_SNTP -> {
-                    SafeScreenContainer {
-                        WifiSntpScreen(
-                            state = state,
-                            viewModel = viewModel,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
+                    WifiSntpScreen(
+                        state = state,
+                        viewModel = viewModel,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
                 AppScreen.ADMOB_CENTER -> {
-                    SafeScreenContainer {
-                        AdMobCenterScreen(
-                            state = state,
-                            viewModel = viewModel,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
+                    AdMobCenterScreen(
+                        state = state,
+                        viewModel = viewModel,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
                 AppScreen.LOAN_PROFILE -> {
-                    SafeScreenContainer {
-                        LoanProfileScreen(
-                            state = state,
-                            viewModel = viewModel,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
+                    LoanProfileScreen(
+                        state = state,
+                        viewModel = viewModel,
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun SafeScreenContainer(content: @Composable () -> Unit) {
-    try {
-        content()
-    } catch (e: Exception) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(text = "Loading screen details...")
         }
     }
 }
