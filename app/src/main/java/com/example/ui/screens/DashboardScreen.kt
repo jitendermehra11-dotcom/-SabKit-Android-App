@@ -55,6 +55,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.TestStatus
+import com.example.ui.components.AdBanner
+import com.example.ui.components.CustomAppDialog
 import com.example.viewmodel.AppScreen
 import com.example.viewmodel.SabKitUiState
 import com.example.viewmodel.SabKitViewModel
@@ -66,6 +68,18 @@ fun DashboardScreen(
     onNavigate: (AppScreen) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    // Safe Custom Compose Dialog Integration
+    CustomAppDialog(
+        showDialog = state.showLoanDialog,
+        title = "विशेष सूचना",
+        message = "सबकिट ऐप में आपका स्वागत है! क्या आप सरकारी लोन एवं बिजनेस सहायता मॉड्यूल देखना चाहते हैं?",
+        onDismiss = { viewModel.setLoanDialogVisible(false) },
+        onConfirm = {
+            viewModel.setLoanDialogVisible(false)
+            onNavigate(AppScreen.LOAN_PROFILE)
+        }
+    )
+
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -153,6 +167,15 @@ fun DashboardScreen(
                     }
                 }
             }
+        }
+
+        // AdMob Banner Placement (Hero Banner के ठीक नीचे)
+        item {
+            AdBanner(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+            )
         }
 
         // Section Title: Developer Modules
