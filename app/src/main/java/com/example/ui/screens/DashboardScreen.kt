@@ -168,7 +168,7 @@ fun DashboardScreen(
             }
         }
 
-        // AdMob Banner Placement (Explicit package reference)
+        // AdMob Banner Placement (Explicit full package reference)
         item {
             com.example.ui.components.AdBanner(
                 modifier = Modifier
