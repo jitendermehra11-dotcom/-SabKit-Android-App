@@ -55,7 +55,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.TestStatus
-import com.example.ui.components.AdBanner
 import com.example.ui.components.CustomAppDialog
 import com.example.viewmodel.AppScreen
 import com.example.viewmodel.SabKitUiState
@@ -169,9 +168,9 @@ fun DashboardScreen(
             }
         }
 
-        // AdMob Banner Placement (Hero Banner के ठीक नीचे)
+        // AdMob Banner Placement (Explicit package reference to avoid import issues)
         item {
-            AdBanner(
+            com.example.ui.components.AdBanner(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp)
