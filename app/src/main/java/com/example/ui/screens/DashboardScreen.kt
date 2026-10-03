@@ -54,11 +54,33 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 import com.example.model.TestStatus
 import com.example.ui.components.CustomAppDialog
 import com.example.viewmodel.AppScreen
 import com.example.viewmodel.SabKitUiState
 import com.example.viewmodel.SabKitViewModel
+
+// Inline Safe AdBanner Component
+@Composable
+fun AdBanner(
+    adUnitId: String = "ca-app-pub-3940256099942544/6300978111", // Official AdMob Test Unit ID
+    modifier: Modifier = Modifier
+) {
+    AndroidView(
+        modifier = modifier.fillMaxWidth(),
+        factory = { context ->
+            AdView(context).apply {
+                setAdSize(AdSize.BANNER)
+                this.adUnitId = adUnitId
+                loadAd(AdRequest.Builder().build())
+            }
+        }
+    )
+}
 
 @Composable
 fun DashboardScreen(
@@ -168,9 +190,9 @@ fun DashboardScreen(
             }
         }
 
-        // AdMob Banner Placement (Explicit full package reference)
+        // AdMob Banner Placement
         item {
-            com.example.ui.components.AdBanner(
+            AdBanner(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp)
