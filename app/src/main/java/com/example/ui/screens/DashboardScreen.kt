@@ -168,7 +168,7 @@ fun DashboardScreen(
             }
         }
 
-        // AdMob Banner Placement (Explicit package reference to avoid import issues)
+        // AdMob Banner Placement (Explicit package reference)
         item {
             com.example.ui.components.AdBanner(
                 modifier = Modifier
@@ -337,7 +337,7 @@ fun DashboardScreen(
                         }
                     }
 
-                    // Safe Result or Error Display (No App Crash)
+                    // Safe Result or Error Display
                     when (state.speedTestResult.status) {
                         TestStatus.SUCCESS -> {
                             Spacer(modifier = Modifier.height(10.dp))
@@ -516,7 +516,7 @@ fun DashboardScreen(
                         }
                     }
 
-                    // Safe Result or Error Display (No App Crash)
+                    // Safe Result or Error Display
                     when (state.sntpResult.status) {
                         TestStatus.SUCCESS -> {
                             Spacer(modifier = Modifier.height(10.dp))
