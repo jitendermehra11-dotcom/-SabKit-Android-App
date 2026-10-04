@@ -51,15 +51,14 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Security Layer 1: Setup Uncaught Exception Handler to mask sensitive internal stack traces
+        // Security Layer 1: Global Crash Masking
         setupGlobalSecurityExceptionHandler()
 
-        // Security Layer 2: Initialize Encrypted Storage Layer Safely
+        // Security Layer 2: Encrypted Storage Layer Initializer
         initEncryptedStorage()
 
         enableEdgeToEdge()
 
-        // Ads initialization safely
         runCatching {
             MobileAds.initialize(this) {}
         }
@@ -127,7 +126,6 @@ fun SabKitAppSafe() {
         AppScreen.LOAN_PROFILE -> "PM SVANidhi, MUDRA & MSME Schemes"
     }
 
-    // Pure Compose Dialog
     if (state.showLoanDialog) {
         GovernmentLoanPopupDialog(
             showDialog = state.showLoanDialog,
