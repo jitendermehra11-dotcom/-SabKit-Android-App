@@ -51,10 +51,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Security Layer 1: Global Crash Masking
+        // Security Layer 1: Setup Uncaught Exception Handler
         setupGlobalSecurityExceptionHandler()
 
-        // Security Layer 2: Encrypted Storage Layer Initializer
+        // Security Layer 2: Initialize Encrypted Storage Layer Safely
         initEncryptedStorage()
 
         enableEdgeToEdge()
