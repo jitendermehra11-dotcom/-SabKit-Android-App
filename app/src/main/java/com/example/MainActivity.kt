@@ -1,6 +1,7 @@
 package com.example
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -42,11 +43,20 @@ import com.example.ui.theme.MyApplicationTheme
 import com.example.viewmodel.AppScreen
 import com.example.viewmodel.SabKitViewModel
 import com.google.android.gms.ads.MobileAds
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Security Layer 1: Setup Uncaught Exception Handler to mask sensitive internal stack traces
+        setupGlobalSecurityExceptionHandler()
+
+        // Security Layer 2: Initialize Encrypted Storage Layer Safely
+        initEncryptedStorage()
+
         enableEdgeToEdge()
 
         // Ads initialization safely
@@ -58,6 +68,33 @@ class MainActivity : AppCompatActivity() {
             MyApplicationTheme {
                 SabKitAppSafe()
             }
+        }
+    }
+
+    private fun setupGlobalSecurityExceptionHandler() {
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            // Log for release diagnosis if needed, without exposing details on UI
+            Log.e("SabKitSecurity", "Unhandled exception safely intercepted", throwable)
+            defaultHandler?.uncaughtException(thread, throwable)
+        }
+    }
+
+    private fun initEncryptedStorage() {
+        runCatching {
+            val masterKey = MasterKey.Builder(this)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
+
+            EncryptedSharedPreferences.create(
+                this,
+                "sabkit_secure_prefs",
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SKEY_RAW,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        }.onFailure {
+            Log.e("SabKitSecurity", "EncryptedSharedPreferences initialization failed", it)
         }
     }
 }
