@@ -81,12 +81,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun initEncryptedStorage() {
         runCatching {
-            val masterKey = MasterKey.Builder(this)
+            val masterKey = MasterKey.Builder(applicationContext)
                 .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
                 .build()
 
             EncryptedSharedPreferences.create(
-                this,
+                applicationContext,
                 "sabkit_secure_prefs",
                 masterKey,
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SKEY,
