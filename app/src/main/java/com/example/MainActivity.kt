@@ -88,7 +88,7 @@ class MainActivity : AppCompatActivity() {
                 applicationContext,
                 "sabkit_secure_prefs",
                 masterKey,
-                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SKEY,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
         }.onFailure {
