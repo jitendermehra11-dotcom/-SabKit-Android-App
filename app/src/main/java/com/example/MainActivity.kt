@@ -74,7 +74,6 @@ class MainActivity : AppCompatActivity() {
     private fun setupGlobalSecurityExceptionHandler() {
         val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
-            // Log for release diagnosis if needed, without exposing details on UI
             Log.e("SabKitSecurity", "Unhandled exception safely intercepted", throwable)
             defaultHandler?.uncaughtException(thread, throwable)
         }
@@ -90,7 +89,7 @@ class MainActivity : AppCompatActivity() {
                 this,
                 "sabkit_secure_prefs",
                 masterKey,
-                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SKEY_RAW,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SKEY,
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
         }.onFailure {
