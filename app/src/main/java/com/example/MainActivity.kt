@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity() {
         // Security Layer 1: Global Crash Masking
         setupGlobalSecurityExceptionHandler()
 
-        // Security Layer 2: Safe Encrypted Storage Init
+        // Security Layer 2: Encrypted Storage Layer Initializer
         initEncryptedStorage()
 
         enableEdgeToEdge()
