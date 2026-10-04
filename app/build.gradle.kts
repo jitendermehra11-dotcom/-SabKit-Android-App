@@ -21,7 +21,9 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // SabKit Zero-Trust Security Configuration
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         debug {
@@ -84,6 +86,9 @@ dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("com.squareup.retrofit2:converter-moshi:2.9.0")
     
+    // Security Library for EncryptedSharedPreferences (AES-256)
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+
     // Firebase Updated Dependencies
     implementation("com.google.firebase:firebase-vertexai:16.0.0-beta01")
     implementation("com.google.firebase:firebase-appcheck-playintegrity")
